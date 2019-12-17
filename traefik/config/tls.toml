@@ -1,0 +1,3 @@
+[[tls.certificates]]
+    certFile = "/certs/pico-cert.pem"
+    keyFile = "/certs/pico-key.pem"

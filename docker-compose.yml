@@ -1,0 +1,32 @@
+version: '3.3'
+
+services:
+  traefik:
+    image: traefik
+    labels:
+      - 'traefik.http.routers.dashboard.rule=Host(`pico.test`)'
+      - 'traefik.http.routers.dashboard.tls=true'
+      - 'traefik.http.routers.service=`dashboard`'
+      - 'traefik.http.services.dashboard.loadbalancer.server.port=8080'
+    ports:
+      - '80:80'
+      - '443:443'
+      - '6379:6379'
+      - '3306:3306'
+      - '5432:5432'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik/config:/config
+      - ./traefik/traefik.toml:/etc/traefik/traefik.toml
+      - ~/.local/certs/:/certs/
+    restart: always
+  whoami:
+    image: containous/whoami
+    labels:
+      - 'traefik.http.routers.whoami.rule=Host(`whoami.pico.test`)'
+      - 'traefik.http.routers.whoami.tls=true'
+    restart: always
+networks:
+  default:
+    external:
+      name: picobug
