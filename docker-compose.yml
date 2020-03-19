@@ -4,6 +4,11 @@ services:
   traefik:
     image: traefik
     labels:
+      - 'traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)'
+      - 'traefik.http.routers.http-catchall.entrypoints=web'
+      - 'traefik.http.routers.http-catchall.middlewares=redirect-to-https'
+      - 'traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https'
+      
       - 'traefik.http.routers.dashboard.rule=Host(`pico.test`)'
       - 'traefik.http.routers.dashboard.tls=true'
       - 'traefik.http.routers.service=`dashboard`'
@@ -24,6 +29,7 @@ services:
     image: containous/whoami
     labels:
       - 'traefik.http.routers.whoami.rule=Host(`whoami.pico.test`)'
+      - 'traefik.http.routers.whoami.entrypoints=websecure'
       - 'traefik.http.routers.whoami.tls=true'
     restart: always
 networks:
