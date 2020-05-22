@@ -11,9 +11,9 @@ services:
       
       - 'traefik.http.routers.dashboard.rule=Host(`pico.test`)'
       - 'traefik.http.routers.dashboard.tls=true'
-      - 'traefik.http.routers.service=`dashboard`'
       - 'traefik.http.services.dashboard.loadbalancer.server.port=8080'
     ports:
+      - '22:22'
       - '80:80'
       - '443:443'
       - '6379:6379'
@@ -32,6 +32,25 @@ services:
       - 'traefik.http.routers.whoami.entrypoints=websecure'
       - 'traefik.http.routers.whoami.tls=true'
     restart: always
+  gitea:
+    image: gitea/gitea
+    hostname: git.pico.test
+    labels:
+      - 'traefik.http.routers.gitea-web.rule=Host(`git.pico.test`)'
+      - 'traefik.http.routers.gitea-web.tls=true'
+      - 'traefik.http.services.gitea-web.loadbalancer.server.port=3000'
+
+      - "traefik.tcp.routers.gitea-ssh.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.gitea-ssh.entrypoints=ssh"
+      - "traefik.tcp.services.gitea-ssh-svc.loadbalancer.server.port=22"
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+    restart: always
+    volumes:
+      - ./gitea:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
 networks:
   default:
     external:

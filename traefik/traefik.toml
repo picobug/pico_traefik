@@ -22,6 +22,9 @@
 # Optional
 # Default:
 [entryPoints]
+  [entryPoints.ssh]
+    address = ":22"
+  
   [entryPoints.web]
     address = ":80"
 
