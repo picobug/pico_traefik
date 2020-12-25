@@ -22,6 +22,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik/config:/config
+      - ./letsencrypt:/letsencrypt
       - ./traefik/traefik.toml:/etc/traefik/traefik.toml
       - ~/.local/certs/:/certs/
     restart: always
