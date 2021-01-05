@@ -8,7 +8,7 @@ services:
       - 'traefik.http.routers.http-catchall.entrypoints=web'
       - 'traefik.http.routers.http-catchall.middlewares=redirect-to-https'
       - 'traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https'
-      
+
       - 'traefik.http.routers.dashboard.rule=Host(`pico.test`)'
       - 'traefik.http.routers.dashboard.tls=true'
       - 'traefik.http.services.dashboard.loadbalancer.server.port=8080'
@@ -41,9 +41,9 @@ services:
       - 'traefik.http.routers.gitea-web.tls=true'
       - 'traefik.http.services.gitea-web.loadbalancer.server.port=3000'
 
-      - "traefik.tcp.routers.gitea-ssh.rule=HostSNI(`*`)"
-      - "traefik.tcp.routers.gitea-ssh.entrypoints=ssh"
-      - "traefik.tcp.services.gitea-ssh-svc.loadbalancer.server.port=22"
+      - 'traefik.tcp.routers.gitea-ssh.rule=HostSNI(`*`)'
+      - 'traefik.tcp.routers.gitea-ssh.entrypoints=ssh'
+      - 'traefik.tcp.services.gitea-ssh-svc.loadbalancer.server.port=22'
     environment:
       - USER_UID=1000
       - USER_GID=1000
@@ -52,6 +52,22 @@ services:
       - ./gitea:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+  mailhog:
+    image: mailhog/mailhog
+    hostname: mail.pico.test
+    labels:
+      - 'traefik.http.routers.mail.rule=Host(`mail.pico.test`)'
+      - 'traefik.http.routers.mail.tls=true'
+      - 'traefik.http.services.mail.loadbalancer.server.port=8025'
+    logging:
+      driver: 'none' # disable saving logs
+    restart: always
+    networks:
+      default:
+        ipv4_address: 172.16.1.250
+    # ports:
+    #   - 1025:1025 # smtp server
+    #   - 8025:8025 # web ui
 networks:
   default:
     external:
