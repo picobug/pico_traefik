@@ -134,9 +134,9 @@
   # Default: "traefik"
   #
   # entryPoint = "traefik"
-[providers]
-  [providers.file]
-    directory = "/config"
+#[providers]
+#  [providers.file]
+#    directory = "/config"
 ################################################################
 # Docker configuration backend
 ################################################################
@@ -164,9 +164,9 @@
   #
   # exposedByDefault = false
 
-#[certificatesResolvers.myresolver.acme]
-#  email = "jul14n4v@gmail.com"
-#  storage = "/letsencrypt/acme.json"
+[certificatesResolvers.myresolver.acme]
+  email = "jul14n4v@gmail.com"
+  storage = "/letsencrypt/acme.json"
 #  caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
-#  [certificatesResolvers.myresolver.acme.httpChallenge]
-#    entryPoint = "web"
+  [certificatesResolvers.myresolver.acme.httpChallenge]
+    entryPoint = "web"

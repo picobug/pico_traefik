@@ -7,24 +7,25 @@ services:
       - 'traefik.http.routers.http-catchall.rule=hostregexp(`{host:[a-z-.]+}`)'
       - 'traefik.http.routers.http-catchall.entrypoints=web'
       - 'traefik.http.routers.http-catchall.middlewares=redirect-to-https'
-      - 'traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https'
-
-      - 'traefik.http.routers.dashboard.rule=Host(`pico.test`)'
-      - 'traefik.http.routers.dashboard.tls=true'
-      - 'traefik.http.services.dashboard.loadbalancer.server.port=8080'
+      - 'traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=http'
+      #- 'traefik.http.routers.dashboard.rule=(Host(`cmsdev.eraindonesia.com`) && Path(`/traefik`))'
+      #- 'traefik.http.middlewares.redirect-to-https.stripprefix.prefixes=/traefik'
+      #- 'traefik.http.routers.dashboard.tls=true'
+      #- 'traefik.http.services.dashboard.loadbalancer.server.port=8080'
     ports:
-      - '22:22'
+      #- '22:22'
       - '80:80'
+      - '8080:8080'
       - '443:443'
-      - '6379:6379'
-      - '3306:3306'
-      - '5432:5432'
+      #- '6379:6379'
+      #- '3306:3306'
+      #- '5432:5432'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./traefik/config:/config
+      #- ./traefik/config:/config
       - ./letsencrypt:/letsencrypt
       - ./traefik/traefik.toml:/etc/traefik/traefik.toml
-      - ~/.local/certs/:/certs/
+      #- ~/.local/certs/:/certs/
     restart: always
   whoami:
     image: containous/whoami
@@ -68,7 +69,46 @@ services:
     # ports:
     #   - 1025:1025 # smtp server
     #   - 8025:8025 # web ui
+  mariadb:
+    image: mariadb
+    hostname: cmsdev.eraindonesia.com
+    labels:
+      - 'traefik.tcp.routers.mariadb.rule=HostSNI(`*`)'
+      - 'traefik.tcp.routers.mariadb.entrypoints=mariadb'
+      - 'traefik.tcp.routers.mariadb.service=mariadb-svc'
+      - 'traefik.tcp.services.mariadb-svc.loadbalancer.server.port=3306'
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mariadb:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: julio_pico
+      MYSQL_USER: julio
+      MYSQL_PASSWORD: pico
+      MYSQL_ROOT_PASSWORD: l00pb4ck28
+      MYSQL_CHARACTER_SET: utf8mb4
+      MYSQL_COLLATE: utf8mb4_unicode_ci
+      MYSQL_INITDB_SKIP_TZINFO:
+    restart: always
+    ports:
+      - 3306:3306
+    networks:
+      default:
+        ipv4_address: 172.16.1.210
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis:/data
+    command: redis-server --maxmemory 32mb --appendonly no --maxmemory-policy allkeys-lfu
+    restart: always
+    networks:
+      default:
+        ipv4_address: 172.16.1.202
 networks:
   default:
     external:
       name: picobug
+volumes:
+  redis:
+    driver: "local"
+  mariadb:
+    driver: 'local'
