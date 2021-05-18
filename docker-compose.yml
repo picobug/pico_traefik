@@ -7,7 +7,7 @@ services:
       - 'traefik.http.routers.http-catchall.rule=hostregexp(`{host:[a-z-.]+}`)'
       - 'traefik.http.routers.http-catchall.entrypoints=web'
       - 'traefik.http.routers.http-catchall.middlewares=redirect-to-https'
-      - 'traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=http'
+      - 'traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https'
       #- 'traefik.http.routers.dashboard.rule=(Host(`cmsdev.eraindonesia.com`) && Path(`/traefik`))'
       #- 'traefik.http.middlewares.redirect-to-https.stripprefix.prefixes=/traefik'
       #- 'traefik.http.routers.dashboard.tls=true'
