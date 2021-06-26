@@ -10,7 +10,9 @@ services:
       - 'traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https'
 
       - 'traefik.http.routers.dashboard.rule=Host(`pico.test`)'
+      - 'traefik.http.routers.dashboard.entrypoints=websecure'
       - 'traefik.http.routers.dashboard.tls=true'
+      - 'traefik.http.routers.dashboard.service=dashboard'
       - 'traefik.http.services.dashboard.loadbalancer.server.port=8080'
     ports:
       - '22:22'
@@ -20,7 +22,7 @@ services:
       - '3306:3306'
       - '5432:5432'
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/config:/config
       - ./letsencrypt:/letsencrypt
       - ./traefik/traefik.toml:/etc/traefik/traefik.toml
@@ -56,9 +58,11 @@ services:
     image: mailhog/mailhog
     hostname: mail.pico.test
     labels:
-      - 'traefik.http.routers.mail.rule=Host(`mail.pico.test`)'
-      - 'traefik.http.routers.mail.tls=true'
-      - 'traefik.http.services.mail.loadbalancer.server.port=8025'
+      - 'traefik.http.routers.mailhog.rule=Host(`mail.pico.test`)'
+      - 'traefik.http.routers.mailhog.tls=true'
+      - 'traefik.http.routers.mailhog.entrypoints=websecure'
+      - 'traefik.http.routers.mailhog.service=mailhog'
+      - 'traefik.http.services.mailhog.loadbalancer.server.port=8025'
     logging:
       driver: 'none' # disable saving logs
     restart: always

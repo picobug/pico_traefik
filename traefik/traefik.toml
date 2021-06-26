@@ -162,7 +162,7 @@
   # Optional
   # Default: true
   #
-  # exposedByDefault = false
+  exposedByDefault = true
 
 #[certificatesResolvers.myresolver.acme]
 #  email = "jul14n4v@gmail.com"
