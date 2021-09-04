@@ -12,7 +12,8 @@
 [global]
   checkNewVersion = true
   sendAnonymousUsage = true
-
+[experimental]
+  http3 = true
 ################################################################
 # Entrypoints configuration
 ################################################################
@@ -30,6 +31,7 @@
 
   [entryPoints.websecure]
     address = ":443"
+    enableHTTP3 = true
   
   [entryPoints.redis]
     address = ":6379"

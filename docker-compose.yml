@@ -2,14 +2,14 @@ version: '3.3'
 
 services:
   traefik:
-    image: traefik
+    image: traefik:brie
     labels:
       - 'traefik.http.routers.http-catchall.rule=hostregexp(`{host:[a-z-.]+}`)'
       - 'traefik.http.routers.http-catchall.entrypoints=web'
       - 'traefik.http.routers.http-catchall.middlewares=redirect-to-https'
       - 'traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https'
 
-      - 'traefik.http.routers.dashboard.rule=Host(`pico.test`)'
+      - 'traefik.http.routers.dashboard.rule=Host(`pico.loc`)'
       - 'traefik.http.routers.dashboard.entrypoints=websecure'
       - 'traefik.http.routers.dashboard.tls=true'
       - 'traefik.http.routers.dashboard.service=dashboard'
@@ -17,7 +17,8 @@ services:
     ports:
       - '22:22'
       - '80:80'
-      - '443:443'
+      - '443:443/tcp'
+      - '443:443/udp'
       - '6379:6379'
       - '3306:3306'
       - '5432:5432'
@@ -29,17 +30,17 @@ services:
       - ~/.local/certs/:/certs/
     restart: always
   whoami:
-    image: containous/whoami
+    image: traefik/whoami
     labels:
-      - 'traefik.http.routers.whoami.rule=Host(`whoami.pico.test`)'
+      - 'traefik.http.routers.whoami.rule=Host(`whoami.pico.loc`)'
       - 'traefik.http.routers.whoami.entrypoints=websecure'
       - 'traefik.http.routers.whoami.tls=true'
     restart: always
   gitea:
     image: gitea/gitea
-    hostname: git.pico.test
+    hostname: git.pico.loc
     labels:
-      - 'traefik.http.routers.gitea-web.rule=Host(`git.pico.test`)'
+      - 'traefik.http.routers.gitea-web.rule=Host(`git.pico.loc`)'
       - 'traefik.http.routers.gitea-web.tls=true'
       - 'traefik.http.services.gitea-web.loadbalancer.server.port=3000'
 
@@ -56,9 +57,9 @@ services:
       - /etc/localtime:/etc/localtime:ro
   mailhog:
     image: mailhog/mailhog
-    hostname: mail.pico.test
+    hostname: mail.pico.loc
     labels:
-      - 'traefik.http.routers.mailhog.rule=Host(`mail.pico.test`)'
+      - 'traefik.http.routers.mailhog.rule=Host(`mail.pico.loc`)'
       - 'traefik.http.routers.mailhog.tls=true'
       - 'traefik.http.routers.mailhog.entrypoints=websecure'
       - 'traefik.http.routers.mailhog.service=mailhog'
