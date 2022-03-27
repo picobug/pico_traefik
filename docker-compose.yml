@@ -9,7 +9,7 @@ services:
       - 'traefik.http.routers.http-catchall.middlewares=redirect-to-https'
       - 'traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https'
 
-      - 'traefik.http.routers.dashboard.rule=Host(`pico.loc`)'
+      - 'traefik.http.routers.dashboard.rule=Host(`pico.test`)'
       - 'traefik.http.routers.dashboard.entrypoints=websecure'
       - 'traefik.http.routers.dashboard.tls=true'
       - 'traefik.http.routers.dashboard.service=dashboard'
@@ -29,10 +29,13 @@ services:
       - ./traefik/traefik.toml:/etc/traefik/traefik.toml
       - ~/.local/certs/:/certs/
     restart: always
+    networks:
+      default:
+        ipv4_address: 172.16.1.252
   whoami:
     image: traefik/whoami
     labels:
-      - 'traefik.http.routers.whoami.rule=Host(`whoami.pico.loc`)'
+      - 'traefik.http.routers.whoami.rule=Host(`whoami.pico.test`)'
       - 'traefik.http.routers.whoami.entrypoints=websecure'
       - 'traefik.http.routers.whoami.tls=true'
     restart: always
@@ -59,7 +62,7 @@ services:
     image: mailhog/mailhog
     hostname: mail.pico.loc
     labels:
-      - 'traefik.http.routers.mailhog.rule=Host(`mail.pico.loc`)'
+      - 'traefik.http.routers.mailhog.rule=Host(`mail.pico.test`)'
       - 'traefik.http.routers.mailhog.tls=true'
       - 'traefik.http.routers.mailhog.entrypoints=websecure'
       - 'traefik.http.routers.mailhog.service=mailhog'
@@ -75,5 +78,5 @@ services:
     #   - 8025:8025 # web ui
 networks:
   default:
-    external:
-      name: picobug
+    external: true
+    name: picobug
