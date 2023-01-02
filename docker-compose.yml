@@ -2,20 +2,14 @@ version: '3.3'
 
 services:
   traefik:
-    image: traefik:brie
+    image: traefik
+    hostname: pico.test
     labels:
-      - 'traefik.http.routers.http-catchall.rule=hostregexp(`{host:[a-z-.]+}`)'
-      - 'traefik.http.routers.http-catchall.entrypoints=web'
-      - 'traefik.http.routers.http-catchall.middlewares=redirect-to-https'
-      - 'traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https'
-
       - 'traefik.http.routers.dashboard.rule=Host(`pico.test`)'
       - 'traefik.http.routers.dashboard.entrypoints=websecure'
       - 'traefik.http.routers.dashboard.tls=true'
-      - 'traefik.http.routers.dashboard.service=dashboard'
-      - 'traefik.http.services.dashboard.loadbalancer.server.port=8080'
+      - 'traefik.http.routers.dashboard.service=api@internal'
     ports:
-      - '22:22'
       - '80:80'
       - '443:443/tcp'
       - '443:443/udp'
@@ -34,6 +28,7 @@ services:
         ipv4_address: 172.16.1.252
   whoami:
     image: traefik/whoami
+    hostname: whoami.pico.test
     labels:
       - 'traefik.http.routers.whoami.rule=Host(`whoami.pico.test`)'
       - 'traefik.http.routers.whoami.entrypoints=websecure'
@@ -41,9 +36,9 @@ services:
     restart: always
   gitea:
     image: gitea/gitea
-    hostname: git.pico.loc
+    hostname: git.pico.test
     labels:
-      - 'traefik.http.routers.gitea-web.rule=Host(`git.pico.loc`)'
+      - 'traefik.http.routers.gitea-web.rule=Host(`git.pico.test`)'
       - 'traefik.http.routers.gitea-web.tls=true'
       - 'traefik.http.services.gitea-web.loadbalancer.server.port=3000'
 
@@ -59,8 +54,9 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
   mailhog:
-    image: mailhog/mailhog
-    hostname: mail.pico.loc
+    # image: mailhog/mailhog
+    image: druidfi/mailhog
+    hostname: mail.pico.test
     labels:
       - 'traefik.http.routers.mailhog.rule=Host(`mail.pico.test`)'
       - 'traefik.http.routers.mailhog.tls=true'
@@ -76,6 +72,58 @@ services:
     # ports:
     #   - 1025:1025 # smtp server
     #   - 8025:8025 # web ui
+  openssh:
+    image: lscr.io/linuxserver/openssh-server
+    container_name: openssh-server
+    hostname: openssh-server #optional
+    labels:
+      - 'traefik.tcp.routers.openssh.rule=HostSNI(`*`)'
+      - 'traefik.tcp.routers.openssh.entrypoints=openssh'
+      - 'traefik.tcp.routers.openssh.service=openssh-proxy'
+      - 'traefik.tcp.services.openssh-proxy.loadbalancer.server.port=2222'
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Jakarta
+      - PUBLIC_KEY=ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEEGHgRoVmhCfxKavNOB4pfNynT+YuD9KsGOdSzCZTyc Picobug SSH #optional
+      # - PUBLIC_KEY_FILE=/path/to/file #optional
+      # - PUBLIC_KEY_DIR=/path/to/directory/containing/_only_/pubkeys #optional
+      # - PUBLIC_KEY_URL=https://github.com/username.keys #optional
+      - SUDO_ACCESS=false #optional
+      - PASSWORD_ACCESS=false #optional
+      - USER_PASSWORD=picossh #optional
+      # - USER_PASSWORD_FILE=/path/to/file #optional
+      - USER_NAME=picobug #optional
+    volumes:
+      - ./letsencrypt/sshconfig:/config
+    # ports:
+    #  - 2222:2222
+    restart: unless-stopped
+  mariadb:
+    image: jbergstroem/mariadb-alpine
+    hostname: legacy.pico.test
+    labels:
+      - 'traefik.tcp.routers.legacydb.rule=HostSNI(`*`)'
+      - 'traefik.tcp.routers.legacydb.entrypoints=mariadb'
+      - 'traefik.tcp.routers.legacydb.service=legacydb-proxy'
+      - 'traefik.tcp.services.legacydb-proxy.loadbalancer.server.port=3306'
+    # command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mariadb:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: julio_pico
+      MYSQL_USER: julio
+      MYSQL_PASSWORD: pico
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    restart: always
+    networks:
+      default:
+        ipv4_address: 172.16.1.210
+volumes:
+  mariadb:
+    driver: 'local'
 networks:
   default:
     external: true

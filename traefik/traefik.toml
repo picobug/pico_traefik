@@ -10,8 +10,8 @@
 # Global configuration
 ################################################################
 [global]
-  checkNewVersion = true
-  sendAnonymousUsage = true
+  checkNewVersion = false
+  sendAnonymousUsage = false
 [experimental]
   http3 = true
 ################################################################
@@ -26,12 +26,20 @@
   [entryPoints.ssh]
     address = ":22"
   
+  [entryPoints.openssh]
+    address = ":2222"
+  
   [entryPoints.web]
     address = ":80"
+    [entryPoints.web.http]
+    [entryPoints.web.http.redirections]
+      [entryPoints.web.http.redirections.entryPoint]
+        to = "websecure"
+        scheme = "https"
 
   [entryPoints.websecure]
     address = ":443"
-    enableHTTP3 = true
+    http3 = true
   
   [entryPoints.redis]
     address = ":6379"
