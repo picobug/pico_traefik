@@ -54,8 +54,8 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
   mailhog:
-    # image: mailhog/mailhog
-    image: druidfi/mailhog
+    image: axllent/mailpit
+    # image: druidfi/mailhog
     hostname: mail.pico.test
     labels:
       - 'traefik.http.routers.mailhog.rule=Host(`mail.pico.test`)'
@@ -101,7 +101,6 @@ services:
     restart: unless-stopped
   mariadb:
     image: jbergstroem/mariadb-alpine
-    hostname: legacy.pico.test
     labels:
       - 'traefik.tcp.routers.legacydb.rule=HostSNI(`*`)'
       - 'traefik.tcp.routers.legacydb.entrypoints=mariadb'
@@ -118,11 +117,48 @@ services:
       MYSQL_CHARSET: utf8mb4
       MYSQL_COLLATION: utf8mb4_unicode_ci
     restart: always
+  redis:
+    image: redis:alpine
+    ulimits:
+      memlock: -1
+    hostname: db.pico.test
+    labels:
+      - 'traefik.tcp.routers.redis.rule=HostSNI(`*`)'
+      - 'traefik.tcp.routers.redis.entrypoints=redis'
+      - 'traefik.tcp.routers.redis.service=redis-proxy'
+      - 'traefik.tcp.services.redis-proxy.loadbalancer.server.port=6379'
+    volumes:
+      - redis:/data
+    command: redis-server --maxmemory 32mb --appendonly no --maxmemory-policy allkeys-lru
+    restart: always
+  minio:
+    image: 'minio/minio'
+    labels:
+      - 'traefik.http.routers.minio.rule=Host(`minio.pico.test`)'
+      - 'traefik.http.routers.minio.tls=true'
+      - 'traefik.http.routers.minio.entrypoints=websecure'
+      - 'traefik.http.routers.minio.service=minio'
+      - 'traefik.http.services.minio.loadbalancer.server.port=9000'
+    environment:
+        MINIO_ROOT_USER: 'julio'
+        MINIO_ROOT_PASSWORD: 'pico'
+    volumes:
+        - 'minio:/data/minio'
+    restart: unless-stopped
+    command: minio server /data/minio --console-address ":8900"
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+        retries: 3
+        timeout: 5s
     networks:
       default:
-        ipv4_address: 172.16.1.210
+        ipv4_address: 172.16.1.253
 volumes:
   mariadb:
+    driver: 'local'
+  redis:
+    driver: 'local'
+  minio:
     driver: 'local'
 networks:
   default:
