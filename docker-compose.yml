@@ -111,8 +111,8 @@ services:
       - mariadb:/var/lib/mysql
     environment:
       MYSQL_DATABASE: julio_pico
-      MYSQL_USER: julio
-      MYSQL_PASSWORD: pico
+      MYSQL_USER: "${USER}"
+      MYSQL_PASSWORD: "${PASS}"
       MYSQL_ROOT_PASSWORD: root
       MYSQL_CHARSET: utf8mb4
       MYSQL_COLLATION: utf8mb4_unicode_ci
@@ -139,17 +139,24 @@ services:
       - 'traefik.http.routers.minio.entrypoints=websecure'
       - 'traefik.http.routers.minio.service=minio'
       - 'traefik.http.services.minio.loadbalancer.server.port=9000'
-    environment:
-        MINIO_ROOT_USER: 'julio'
-        MINIO_ROOT_PASSWORD: 'pico'
+
+      - 'traefik.http.routers.cminio.rule=Host(`cminio.pico.test`)'
+      - 'traefik.http.routers.cminio.tls=true'
+      - 'traefik.http.routers.cminio.entrypoints=websecure'
+      - 'traefik.http.routers.cminio.service=cminio'
+      - 'traefik.http.services.cminio.loadbalancer.server.port=8900'
+    env_file:
+      - .env
     volumes:
-        - 'minio:/data/minio'
+        - 'minio:/data'
     restart: unless-stopped
     command: minio server /data/minio --console-address ":8900"
     healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
         retries: 3
         timeout: 5s
+    extra_hosts:
+      - "minio.pico.test:172.16.1.252"
     networks:
       default:
         ipv4_address: 172.16.1.253
