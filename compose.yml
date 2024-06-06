@@ -1,0 +1,60 @@
+services:
+  traefik:
+    #container_name: "${HOST_NAME}"
+    image: traefik
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.dashboard.rule=Host(`${HOST_NAME}`)'
+      - 'traefik.http.routers.dashboard.entrypoints=websecure'
+      - 'traefik.http.routers.dashboard.tls=true'
+      - 'traefik.http.routers.dashboard.service=api@internal'
+      - 'traefik.http.routers.dashboard.middlewares=dashboard'
+      - 'traefik.http.middlewares.dashboard.compress=true'
+    ports:
+      - '80:80'
+      - '443:443/tcp'
+      - '443:443/udp'
+      - '6379:6379'
+      - '3306:3306'
+      - '5432:5432'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/config:/config
+      - ./letsencrypt:/letsencrypt
+      - ./traefik/traefik.toml:/etc/traefik/traefik.toml
+      - ~/.local/certs/:/certs/
+    restart: always
+    networks:
+      default:
+        ipv4_address: 172.16.1.1
+  whoami:
+    image: traefik/whoami
+    #container_name: "whoami.${HOST_NAME}"
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.whoami.rule=Host(`whoami.${HOST_NAME}`)'
+      - 'traefik.http.routers.whoami.entrypoints=websecure'
+      - 'traefik.http.routers.whoami.tls=true'
+    restart: always
+  mailhog:
+    image: axllent/mailpit
+    #container_name: "mail.${HOST_NAME}"
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.mailhog.rule=Host(`mail.${HOST_NAME}`)'
+      - 'traefik.http.routers.mailhog.tls=true'
+      - 'traefik.http.routers.mailhog.entrypoints=websecure'
+      - 'traefik.http.routers.mailhog.service=mailhog'
+      - 'traefik.http.services.mailhog.loadbalancer.server.port=8025'
+      - 'traefik.http.routers.mailhog.middlewares=mailhog'
+      - 'traefik.http.middlewares.mailhog.compress=true'
+    logging:
+      driver: 'none' # disable saving logs
+    restart: always
+    networks:
+      default:
+        ipv4_address: 172.16.1.250
+networks:
+  default:
+    external: true
+    name: picobug

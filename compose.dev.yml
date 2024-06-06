@@ -1,44 +1,11 @@
 version: '3.3'
 
 services:
-  traefik:
-    image: traefik
-    hostname: pico.test
-    labels:
-      - 'traefik.http.routers.dashboard.rule=Host(`pico.test`)'
-      - 'traefik.http.routers.dashboard.entrypoints=websecure'
-      - 'traefik.http.routers.dashboard.tls=true'
-      - 'traefik.http.routers.dashboard.service=api@internal'
-    ports:
-      - '80:80'
-      - '443:443/tcp'
-      - '443:443/udp'
-      - '6379:6379'
-      - '3306:3306'
-      - '5432:5432'
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/config:/config
-      - ./letsencrypt:/letsencrypt
-      - ./traefik/traefik.toml:/etc/traefik/traefik.toml
-      - ~/.local/certs/:/certs/
-    restart: always
-    networks:
-      default:
-        ipv4_address: 172.16.1.252
-  whoami:
-    image: traefik/whoami
-    hostname: whoami.pico.test
-    labels:
-      - 'traefik.http.routers.whoami.rule=Host(`whoami.pico.test`)'
-      - 'traefik.http.routers.whoami.entrypoints=websecure'
-      - 'traefik.http.routers.whoami.tls=true'
-    restart: always
   gitea:
     image: gitea/gitea
-    hostname: git.pico.test
+    hostname: git.${HOST_NAME}
     labels:
-      - 'traefik.http.routers.gitea-web.rule=Host(`git.pico.test`)'
+      - 'traefik.http.routers.gitea-web.rule=Host(`git.${HOST_NAME}`)'
       - 'traefik.http.routers.gitea-web.tls=true'
       - 'traefik.http.services.gitea-web.loadbalancer.server.port=3000'
 
@@ -53,25 +20,6 @@ services:
       - ./gitea:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-  mailhog:
-    image: axllent/mailpit
-    # image: druidfi/mailhog
-    hostname: mail.pico.test
-    labels:
-      - 'traefik.http.routers.mailhog.rule=Host(`mail.pico.test`)'
-      - 'traefik.http.routers.mailhog.tls=true'
-      - 'traefik.http.routers.mailhog.entrypoints=websecure'
-      - 'traefik.http.routers.mailhog.service=mailhog'
-      - 'traefik.http.services.mailhog.loadbalancer.server.port=8025'
-    logging:
-      driver: 'none' # disable saving logs
-    restart: always
-    networks:
-      default:
-        ipv4_address: 172.16.1.250
-    # ports:
-    #   - 1025:1025 # smtp server
-    #   - 8025:8025 # web ui
   openssh:
     image: lscr.io/linuxserver/openssh-server
     container_name: openssh-server
@@ -121,7 +69,7 @@ services:
     image: redis:alpine
     ulimits:
       memlock: -1
-    hostname: db.pico.test
+    hostname: db.${HOST_NAME}
     labels:
       - 'traefik.tcp.routers.redis.rule=HostSNI(`*`)'
       - 'traefik.tcp.routers.redis.entrypoints=redis'
@@ -134,13 +82,13 @@ services:
   minio:
     image: 'minio/minio'
     labels:
-      - 'traefik.http.routers.minio.rule=Host(`minio.pico.test`)'
+      - 'traefik.http.routers.minio.rule=Host(`minio.${HOST_NAME}`)'
       - 'traefik.http.routers.minio.tls=true'
       - 'traefik.http.routers.minio.entrypoints=websecure'
       - 'traefik.http.routers.minio.service=minio'
       - 'traefik.http.services.minio.loadbalancer.server.port=9000'
 
-      - 'traefik.http.routers.cminio.rule=Host(`cminio.pico.test`)'
+      - 'traefik.http.routers.cminio.rule=Host(`cminio.${HOST_NAME}`)'
       - 'traefik.http.routers.cminio.tls=true'
       - 'traefik.http.routers.cminio.entrypoints=websecure'
       - 'traefik.http.routers.cminio.service=cminio'
@@ -156,7 +104,7 @@ services:
         retries: 3
         timeout: 5s
     extra_hosts:
-      - "minio.pico.test:172.16.1.252"
+      - "minio.${HOST_NAME}:172.16.1.252"
     networks:
       default:
         ipv4_address: 172.16.1.253

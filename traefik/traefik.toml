@@ -12,8 +12,6 @@
 [global]
   checkNewVersion = false
   sendAnonymousUsage = false
-[experimental]
-  http3 = true
 ################################################################
 # Entrypoints configuration
 ################################################################
@@ -31,11 +29,11 @@
   
   [entryPoints.web]
     address = ":80"
-    [entryPoints.web.http]
-    [entryPoints.web.http.redirections]
-      [entryPoints.web.http.redirections.entryPoint]
-        to = "websecure"
-        scheme = "https"
+    # [entryPoints.web.http]
+    # [entryPoints.web.http.redirections]
+      # [entryPoints.web.http.redirections.entryPoint]
+        # to = "websecure"
+        # scheme = "https"
 
   [entryPoints.websecure]
     address = ":443"
@@ -172,11 +170,11 @@
   # Optional
   # Default: true
   #
-  exposedByDefault = true
+  exposedByDefault = false
 
-#[certificatesResolvers.myresolver.acme]
-#  email = "jul14n4v@gmail.com"
-#  storage = "/letsencrypt/acme.json"
-#  caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
-#  [certificatesResolvers.myresolver.acme.httpChallenge]
-#    entryPoint = "web"
+[certificatesResolvers.myresolver.acme]
+ email = "jul14n4v@gmail.com"
+ storage = "/letsencrypt/acme.json"
+ # caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
+ [certificatesResolvers.myresolver.acme.httpChallenge]
+   entryPoint = "web"
